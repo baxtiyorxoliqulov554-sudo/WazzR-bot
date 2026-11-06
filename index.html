@@ -49,8 +49,8 @@
     </header>
 
     <div class="banner">
-        <h2>⚡ Tezkor Donat Xizmati</h2>
-        <p>O'yinlaringizni avtomatik va ishonchli to'ldiring!</p>
+        <h2 id="banner-title">⚡ Tezkor Donat Xizmati</h2>
+        <p id="banner-desc">O'yinlaringizni avtomatik va ishonchli to'ldiring!</p>
     </div>
 
     <div class="categories" id="categories-container"></div>
@@ -114,6 +114,9 @@
                 document.getElementById('u-id').innerText = 'ID: ' + appData.user.tg_id;
                 document.getElementById('u-balance').innerText = appData.user.balance.toLocaleString() + ' UZS';
                 
+                if(appData.banner_text) document.getElementById('banner-title').innerText = appData.banner_text;
+                if(appData.banner_desc) document.getElementById('banner-desc').innerText = appData.banner_desc;
+
                 renderCategories();
                 renderProducts(appData.categories[0]?.key);
             } catch(e) {
