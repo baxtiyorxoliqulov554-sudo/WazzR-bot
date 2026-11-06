@@ -2,95 +2,110 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Wazzr Bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wazzr Store</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root {--bg: #0b0f19; --card: #131b2e; --accent: #6366f1; --text: #f8fafc; --muted: #94a3b8; --border: #1e293b;}
-        * {box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif;}
-        body {background: var(--bg); color: var(--text); padding: 16px; padding-bottom: 90px;}
-        header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: var(--card); padding: 14px 18px; border-radius: 16px; border: 1px solid var(--border);}
-        .profile-info h3 {font-size: 16px; font-weight: 700;}
-        .profile-info p {font-size: 13px; color: var(--muted);}
-        .balance-badge {background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 6px 12px; border-radius: 12px; font-weight: 700; font-size: 14px;}
-        .banner {background: linear-gradient(135deg, #4f46e5, #9333ea); padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center;}
-        .banner h2 {font-size: 20px; font-weight: 800; margin-bottom: 6px;}
-        .banner p {font-size: 13px; opacity: 0.9;}
-        .categories {display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px;}
-        .categories::-webkit-scrollbar {display: none;}
-        .cat-btn {background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer;}
-        .cat-btn.active {background: var(--accent); border-color: var(--accent);}
-        .products-grid {display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;}
-        .prod-card {background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; transition: 0.2s;}
-        .prod-card:active {transform: scale(0.96);}
-        .prod-icon {font-size: 28px; margin-bottom: 8px;}
-        .prod-title {font-size: 14px; font-weight: 700; margin-bottom: 4px;}
-        .prod-price {font-size: 13px; color: #818cf8; font-weight: 700;}
-        .modal {position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: flex-end; z-index: 100;}
-        .modal-content {background: var(--card); width: 100%; max-width: 500px; border-radius: 24px 24px 0 0; padding: 24px; border-top: 1px solid var(--border); max-height: 90vh; overflow-y: auto;}
-        .input-group {margin-bottom: 16px;}
-        .input-group label {display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 600;}
-        .input-group input {width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 12px; font-size: 14px; outline: none;}
-        .btn {width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 10px;}
-        .nav-bar {position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 12px; z-index: 50;}
-        .nav-item {background: none; border: none; color: var(--muted); font-size: 12px; font-weight: 600; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px;}
-        .nav-item.active {color: var(--accent);}
+        :root {
+            --bg: #0d1117;
+            --card: #161b22;
+            --border: #30363d;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.35);
+            --text: #f0f6fc;
+            --muted: #8b949e;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); padding: 14px; padding-bottom: 80px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 16px; margin-bottom: 14px; }
+        .user-name { font-size: 15px; font-weight: 700; }
+        .user-id { font-size: 12px; color: var(--muted); }
+        .balance-chip { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 13px; box-shadow: 0 4px 12px var(--accent-glow); }
+
+        .banner { background: linear-gradient(135deg, #312e81, #581c87); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .banner h2 { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: #fff; }
+        .banner p { font-size: 12px; color: rgba(255,255,255,0.8); }
+
+        .categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 14px; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: 0.2s; }
+        .cat-btn.active { background: var(--accent); border-color: var(--accent); box-shadow: 0 2px 10px var(--accent-glow); }
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; transition: transform 0.15s ease, border-color 0.15s ease; }
+        .card:active { transform: scale(0.96); border-color: var(--accent); }
+        .card-icon { font-size: 32px; margin-bottom: 8px; }
+        .card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+        .card-price { font-size: 13px; font-weight: 700; color: #a5b4fc; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: flex-end; z-index: 100; }
+        .modal-body { background: var(--card); width: 100%; border-radius: 24px 24px 0 0; padding: 20px; border-top: 1px solid var(--border); animation: slideUp 0.2s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .input-box { margin-top: 12px; margin-bottom: 16px; }
+        .input-box label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .input-box input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: #fff; padding: 12px; border-radius: 12px; outline: none; font-size: 14px; }
+
+        .btn { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 14px; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .btn-close { background: transparent; color: var(--muted); margin-top: 6px; }
+
+        .nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); border-top: 1px solid var(--border); display: flex; justify-content: space-around; padding: 10px 0; }
+        .nav-btn { background: none; border: none; color: var(--muted); font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .nav-btn.active { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="profile-info">
-            <h3 id="u-name">Yuklanmoqda...</h3>
-            <p id="u-id">ID: ---</p>
+    <div class="header">
+        <div>
+            <div class="user-name" id="u-name">Yuklanmoqda...</div>
+            <div class="user-id" id="u-id">ID: ---</div>
         </div>
-        <div class="balance-badge" id="u-balance">0 UZS</div>
-    </header>
+        <div class="balance-chip" id="u-bal">0 UZS</div>
+    </div>
 
     <div class="banner">
-        <h2 id="banner-title">⚡ Tezkor Donat Xizmati</h2>
-        <p id="banner-desc">O'yinlaringizni avtomatik va ishonchli to'ldiring!</p>
+        <h2 id="b-title">⚡ WAZZR DONAT STORE</h2>
+        <p id="b-desc">O'yinlarga 24/7 tezkor va arzon donat!</p>
     </div>
 
-    <div class="categories" id="categories-container"></div>
-    <div class="products-grid" id="products-container"></div>
+    <div class="categories" id="cats"></div>
+    <div class="grid" id="prods"></div>
 
-    <!-- Buyurtma modal -->
     <div class="modal" id="order-modal">
-        <div class="modal-content">
-            <h3 id="modal-title" style="margin-bottom: 16px;">Xarid qilish</h3>
-            <div class="input-group">
-                <label id="modal-id-label">O'yin Player ID raqamingiz:</label>
-                <input type="text" id="player-id-input" placeholder="ID raqamni kiriting...">
+        <div class="modal-body">
+            <h3 id="modal-title">Xarid qilish</h3>
+            <div class="input-box">
+                <label>Player ID raqamingizni kiriting:</label>
+                <input type="text" id="player-id" placeholder="123456789">
             </div>
-            <button class="btn" onclick="submitOrder()">Davom etish 🚀</button>
-            <button class="btn" style="background: transparent; color: var(--muted);" onclick="closeModal('order-modal')">Yopish</button>
+            <button class="btn" onclick="submitOrder()">Tasdiqlash va Sotib olish 🚀</button>
+            <button class="btn btn-close" onclick="closeModal('order-modal')">Yopish</button>
         </div>
     </div>
 
-    <!-- Hisobni to'ldirish modal -->
     <div class="modal" id="topup-modal">
-        <div class="modal-content">
-            <h3 style="margin-bottom: 16px;">Hisobni to'ldirish (Maks: 500,000 UZS)</h3>
-            <div class="input-group">
-                <label>Summani kiriting (UZS):</label>
-                <input type="number" id="topup-amount" placeholder="50000">
+        <div class="modal-body">
+            <h3>Hisobni to'ldirish</h3>
+            <div class="input-box">
+                <label>Summa (UZS):</label>
+                <input type="number" id="topup-amt" placeholder="50000">
             </div>
-            <div class="input-group">
-                <label>To'lov qiluvchi F.I.Sh (Ism Familiya):</label>
-                <input type="text" id="holder-name-input" placeholder="Ism Familiya">
+            <div class="input-box">
+                <label>F.I.Sh (Ism Familiyangiz):</label>
+                <input type="text" id="topup-holder" placeholder="Ali Valiyev">
             </div>
-            <button class="btn" onclick="requestTopup()">To'lovga o'tish 💳</button>
-            <button class="btn" style="background: transparent; color: var(--muted);" onclick="closeModal('topup-modal')">Yopish</button>
+            <button class="btn" onclick="submitTopup()">To'lovga o'tish 💳</button>
+            <button class="btn btn-close" onclick="closeModal('topup-modal')">Yopish</button>
         </div>
     </div>
 
-    <div class="nav-bar">
-        <button class="nav-item active" onclick="switchTab('shop')">🏠 Asosiy</button>
-        <button class="nav-item" onclick="openTopupModal()">💳 Balans</button>
-        <button class="nav-item" onclick="Telegram.WebApp.openTelegramLink('https://t.me/WazzR_VIP')">⚡ Yangiliklar</button>
-        <button class="nav-item" onclick="Telegram.WebApp.openTelegramLink('https://t.me/WazzR_Isbot')">📜 Isbotlar</button>
+    <div class="nav">
+        <button class="nav-btn active">🏠 Asosiy</button>
+        <button class="nav-btn" onclick="openModal('topup-modal')">💳 Balans</button>
+        <button class="nav-btn" onclick="Telegram.WebApp.openTelegramLink('https://t.me/WazzR_VIP')">⚡ VIP</button>
     </div>
 
     <script>
@@ -98,120 +113,95 @@
         tg.expand();
         let appData = {};
         let selectedProduct = null;
-        let activeCategory = null;
 
-        async function loadData() {
+        async function init() {
             try {
-                let res = await fetch('/api/state', {
-                    headers: {'X-Init': tg.initData}
-                });
-                appData = await res.json();
-                if(appData.error) {
-                    alert(appData.error);
-                    return;
-                }
+                let r = await fetch('/api/state', { headers: { 'X-Init': tg.initData } });
+                appData = await r.json();
+                
                 document.getElementById('u-name').innerText = appData.user.name;
                 document.getElementById('u-id').innerText = 'ID: ' + appData.user.tg_id;
-                document.getElementById('u-balance').innerText = appData.user.balance.toLocaleString() + ' UZS';
+                document.getElementById('u-bal').innerText = appData.user.balance.toLocaleString() + ' UZS';
                 
-                if(appData.banner_text) document.getElementById('banner-title').innerText = appData.banner_text;
-                if(appData.banner_desc) document.getElementById('banner-desc').innerText = appData.banner_desc;
-
                 renderCategories();
-                renderProducts(appData.categories[0]?.key);
+                if(appData.categories.length > 0) renderProducts(appData.categories[0].key);
             } catch(e) {
                 console.error(e);
             }
         }
 
         function renderCategories() {
-            let container = document.getElementById('categories-container');
-            container.innerHTML = appData.categories.map((c, idx) => `
-                <button class="cat-btn ${idx===0?'active':''}" onclick="renderProducts('${c.key}', this)">${c.icon} ${c.name}</button>
+            let container = document.getElementById('cats');
+            container.innerHTML = appData.categories.map((c, i) => `
+                <button class="cat-btn ${i===0?'active':''}" onclick="filterCat('${c.key}', this)">${c.icon} ${c.name}</button>
             `).join('');
-            if(appData.categories.length > 0) activeCategory = appData.categories[0].key;
         }
 
-        function renderProducts(catKey, btn) {
-            if(btn) {
-                document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            }
-            activeCategory = catKey;
+        function renderProducts(catKey) {
             let filtered = appData.products.filter(p => p.game === catKey);
-            let container = document.getElementById('products-container');
+            let container = document.getElementById('prods');
             container.innerHTML = filtered.map(p => `
-                <div class="prod-card" onclick='openOrderModal(${JSON.stringify(p)})'>
-                    <div class="prod-icon">${p.icon}</div>
-                    <div class="prod-title">${p.title}</div>
-                    <div class="prod-price">${p.price.toLocaleString()} UZS</div>
+                <div class="card" onclick='selectProd(${JSON.stringify(p)})'>
+                    <div class="card-icon">${p.icon}</div>
+                    <div class="card-title">${p.title}</div>
+                    <div class="card-price">${p.price.toLocaleString()} UZS</div>
                 </div>
             `).join('');
         }
 
-        function openOrderModal(prod) {
-            selectedProduct = prod;
-            document.getElementById('modal-title').innerText = prod.title + ' (' + prod.price.toLocaleString() + ' UZS)';
-            document.getElementById('order-modal').style.display = 'flex';
+        function filterCat(key, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderProducts(key);
         }
 
-        function openTopupModal() {
-            document.getElementById('topup-modal').style.display = 'flex';
+        function selectProd(p) {
+            selectedProduct = p;
+            document.getElementById('modal-title').innerText = p.title + ' — ' + p.price.toLocaleString() + ' UZS';
+            openModal('order-modal');
         }
 
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         async function submitOrder() {
-            let pid = document.getElementById('player-id-input').value;
+            let pid = document.getElementById('player-id').value;
             if(!pid) return alert('Player ID kiriting!');
-            let res = await fetch('/api/order', {
+            let r = await fetch('/api/order', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-Init': tg.initData},
-                body: JSON.stringify({product_id: selectedProduct.id, player_id: pid})
+                headers: { 'Content-Type': 'application/json', 'X-Init': tg.initData },
+                body: JSON.stringify({ product_id: selectedProduct.id, player_id: pid })
             });
-            let data = await res.json();
-            if(data.error === 'insufficient') {
-                alert('Mablag\' yetarli emas! Hisobingizni to\'ldiring.');
+            let res = await r.json();
+            if(res.error === 'insufficient') {
+                alert('Mablag\' yetarli emas!');
                 closeModal('order-modal');
-                openTopupModal();
-            } else if(data.error) {
-                alert(data.error);
+                openModal('topup-modal');
+            } else if(res.error) {
+                alert(res.error);
             } else {
-                alert('✅ Buyurtma qabul qilindi va adminga yuborildi!');
+                alert('✅ Buyurtma qabul qilindi!');
                 closeModal('order-modal');
-                loadData();
+                init();
             }
         }
 
-        async function requestTopup() {
-            let amt = document.getElementById('topup-amount').value;
-            let holder = document.getElementById('holder-name-input').value;
-            if(!amt || amt < 1000 || amt > 500000) return alert('Summa 1,000 dan 500,000 UZS gacha bo\'lishi shart!');
-            if(!holder) return alert('To\'lov qiluvchi F.I.Sh ni kiriting!');
-            
-            let res = await fetch('/api/topup', {
+        async function submitTopup() {
+            let amt = document.getElementById('topup-amt').value;
+            let holder = document.getElementById('topup-holder').value;
+            if(!amt || !holder) return alert('Barcha maydonlarni to\'ldiring!');
+            let r = await fetch('/api/topup', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-Init': tg.initData},
-                body: JSON.stringify({amount: amt})
+                headers: { 'Content-Type': 'application/json', 'X-Init': tg.initData },
+                body: JSON.stringify({ amount: amt, holder_name: holder })
             });
-            let data = await res.json();
-            if(data.error) {
-                alert(data.error);
-                return;
-            }
-            await fetch('/api/topup_claim', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json', 'X-Init': tg.initData},
-                body: JSON.stringify({id: data.id, holder_name: holder})
-            });
-            alert(`💳 Karta raqam: ${data.card}\nEgasi: ${data.holder}\nAniq summa: ${data.exact} UZS\n\nTo'lovni amalga oshirib, F.I.Sh yubordingiz. Admin tasdiqlashini kuting!`);
+            let res = await r.json();
+            if(res.error) return alert(res.error);
+            alert(`💳 Karta: ${res.card}\nEgasi: ${res.holder}\nAniq summa: ${res.exact} UZS\n\nTo'lovni amalga oshiring va admin tasdiqlashini kuting.`);
             closeModal('topup-modal');
-            loadData();
         }
 
-        loadData();
+        init();
     </script>
 </body>
 </html>
