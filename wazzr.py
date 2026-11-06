@@ -1,4 +1,4 @@
-"""WAZZR BOT: To'liq boshqaruv, F.I.Sh bilan to'lov, bloklash tizimi va dinamik sozlamalar bilan.
+"""WAZZR BOT: To'liq boshqaruv va Mini App dinamik rasm/ikonka sozlamalari bilan.
 """
 import asyncio, logging, os, sqlite3, secrets, string, time, random, hmac, hashlib, json, re
 from urllib.parse import parse_qsl
@@ -18,7 +18,6 @@ from aiogram.filters.chat_member_updated import ChatMemberUpdatedFilter, KICKED,
 BOT_TOKEN   = os.getenv("BOT_TOKEN", "9185114954:AAHrJk0G0teFH8ec3bLRHabFNZ6WezHRkUE")
 SUPER_ADMIN = int(os.getenv("SUPER_ADMIN_ID", 8520429829))
 WEBAPP_URL  = os.getenv("WEBAPP_URL", "https://wazzr-bot.onrender.com/")
-SMS_SECRET  = os.getenv("SMS_SECRET", "uzun_tasodifiy_maxfiy_soz")
 PORT        = int(os.environ.get("PORT", 8082))
 # =======================================================
 
@@ -41,26 +40,16 @@ def db_init():
             usr_id TEXT UNIQUE,
             username TEXT,
             full_name TEXT,
-            phone TEXT,
             started_at INTEGER,
             last_seen INTEGER,
             blocked_bot INTEGER DEFAULT 0,
-            block_count INTEGER DEFAULT 0,
-            warn_count INTEGER DEFAULT 0,
             banned INTEGER DEFAULT 0,
             ban_until INTEGER DEFAULT 0,
             ban_reason TEXT,
             balance INTEGER DEFAULT 0
         );
-        CREATE TABLE IF NOT EXISTS admins(
-            tg_id INTEGER PRIMARY KEY,
-            username TEXT,
-            can_edit INTEGER DEFAULT 1
-        );
-        CREATE TABLE IF NOT EXISTS settings(
-            key TEXT PRIMARY KEY,
-            value TEXT
-        );
+        CREATE TABLE IF NOT EXISTS admins(tg_id INTEGER PRIMARY KEY, username TEXT);
+        CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
         """)
         defaults = {
             "news_url": "https://t.me/WazzR_VIP",
@@ -68,12 +57,11 @@ def db_init():
             "isbot_url": "https://t.me/WazzR_Isbot",
             "maintenance": "0",
             "maintenance_reason": "",
-            "welcome_image": "",
-            "banner_image": "",
+            "banner_text": "⚡ Tezkor Donat Xizmati",
+            "banner_desc": "O'yinlaringizni avtomatik va ishonchli to'ldiring!",
             "btn_shop": "Xaridga o'tish 🚀",
             "btn_news": "⚡ Yangiliklar",
-            "btn_support": "🥷 Qo'llab-quvvatlash",
-            "terms_text": "Assalomu Aleykum👋 Bizning Wazzr BOTimizdan foydalanayotganingizdan xursandmiz!\n\n1. WAZZR BOT barcha o'yinlar uchun xavfsiz donat taqdim qiladi.\n2. ID raqamni xato kiritish taqiqlanadi.\n3. To'lovlar Uzcard/Humo orqali amalga oshiriladi."
+            "btn_support": "🥷 Qo'llab-quvvatlash"
         }
         for k, v in defaults.items():
             c.execute("INSERT OR IGNORE INTO settings VALUES(?,?)", (k, v))
@@ -109,7 +97,7 @@ def upsert_user(tg_id, username, full_name):
 def mark_blocked(tg_id, blocked: bool):
     with conn() as c:
         if blocked:
-            c.execute("UPDATE users SET blocked_bot=1, block_count=block_count+1 WHERE tg_id=?", (tg_id,))
+            c.execute("UPDATE users SET blocked_bot=1 WHERE tg_id=?", (tg_id,))
         else:
             c.execute("UPDATE users SET blocked_bot=0 WHERE tg_id=?", (tg_id,))
 
@@ -128,10 +116,9 @@ def shop_init():
         CREATE TABLE IF NOT EXISTS cards(id INTEGER PRIMARY KEY AUTOINCREMENT, number TEXT, holder TEXT, active INTEGER DEFAULT 1);
         CREATE TABLE IF NOT EXISTS categories(id INTEGER PRIMARY KEY AUTOINCREMENT, key TEXT UNIQUE, name TEXT, icon TEXT DEFAULT '💎');
         CREATE TABLE IF NOT EXISTS products(id INTEGER PRIMARY KEY AUTOINCREMENT, game TEXT, title TEXT, price INTEGER, icon TEXT DEFAULT '💎', active INTEGER DEFAULT 1);
-        CREATE TABLE IF NOT EXISTS payments(id INTEGER PRIMARY KEY AUTOINCREMENT, tg_id INTEGER, base INTEGER, exact INTEGER, card_id INTEGER, status TEXT, created INTEGER, expires INTEGER, paid_at INTEGER, holder_name TEXT, receipt_file_id TEXT, claimed INTEGER DEFAULT 0);
+        CREATE TABLE IF NOT EXISTS payments(id INTEGER PRIMARY KEY AUTOINCREMENT, tg_id INTEGER, base INTEGER, exact INTEGER, card_id INTEGER, status TEXT, created INTEGER, expires INTEGER, paid_at INTEGER, holder_name TEXT, claimed INTEGER DEFAULT 0);
         CREATE TABLE IF NOT EXISTS orders(id INTEGER PRIMARY KEY AUTOINCREMENT, tg_id INTEGER, product_id INTEGER, game TEXT, title TEXT, price INTEGER, player_id TEXT, status TEXT, created INTEGER);
         CREATE TABLE IF NOT EXISTS carts(tg_id INTEGER PRIMARY KEY, product_id INTEGER, player_id TEXT);
-        CREATE TABLE IF NOT EXISTS custom_links(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, url TEXT, type TEXT);
         """)
         if not c.execute("SELECT 1 FROM categories").fetchone():
             cats = [
@@ -313,8 +300,8 @@ def make_app(bot, token, super_admin, webapp_url):
             "products": prods, "categories": cats, "cart": dict(cart) if cart else None, "ids": ids,
             "links": {"news": get_setting("news_url"), "isbot": get_setting("isbot_url"),
                       "support": f"tg://user?id={sup}" if sup.isdigit() else f"https://t.me/{sup.lstrip('@')}"},
-            "history": history(u["tg_id"]), "pending": pending_of(u["tg_id"]), "terms": get_setting("terms_text"),
-            "banner": get_setting("banner_image")})
+            "history": history(u["tg_id"]), "pending": pending_of(u["tg_id"]),
+            "banner_text": get_setting("banner_text"), "banner_desc": get_setting("banner_desc")})
 
     async def checkid(r):
         b = await body(r)
@@ -386,9 +373,9 @@ def user_keyboard():
     support = get_setting("support_id")
     support_url = f"https://t.me/{support.lstrip('@')}" if not support.isdigit() else f"tg://user?id={support}"
     rows = [
-        [InlineKeyboardButton(text=get_setting("btn_shop"), web_app=WebAppInfo(url=WEBAPP_URL))],
-        [InlineKeyboardButton(text=get_setting("btn_news"), url=get_setting("news_url")),
-         InlineKeyboardButton(text=get_setting("btn_support"), url=support_url)],
+        [InlineKeyboardButton(text="Xaridga o'tish 🚀", web_app=WebAppInfo(url=WEBAPP_URL))],
+        [InlineKeyboardButton(text="⚡ Yangiliklar", url=get_setting("news_url")),
+         InlineKeyboardButton(text="🥷 Qo'llab-quvvatlash", url=support_url)],
     ]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -406,22 +393,11 @@ ADMIN_TEXT = (
 async def start(m: Message):
     u = upsert_user(m.from_user.id, m.from_user.username, m.from_user.full_name)
     if u["banned"] and u["ban_until"] > time.time():
-        await m.answer(f"🚫 Siz vaqtincha bloklangansiz.\nSabab: {u['ban_reason']}\nTugash vaqti: {time.strftime('%d.%m.%Y %H:%M', time.gmtime(u['ban_until']+18000))}")
-        return
-    elif u["banned"]:
-        with conn() as c:
-            c.execute("UPDATE users SET banned=0, ban_until=0 WHERE tg_id=?", (m.from_user.id,))
-    if get_setting("maintenance") == "1" and not is_admin(m.from_user.id, SUPER_ADMIN):
-        reason = get_setting("maintenance_reason") or "Sabab ko'rsatilmagan"
-        await m.answer(f"🛠 Bot vaqtincha tuzatuvda.\nSabab: {reason}")
+        await m.answer(f"🚫 Siz vaqtincha bloklangansiz.\nSabab: {u['ban_reason']}")
         return
     kb = admin_kb() if is_admin(m.from_user.id, SUPER_ADMIN) else user_keyboard()
     txt = ADMIN_TEXT.format(name=hesc(m.from_user.full_name)) if is_admin(m.from_user.id, SUPER_ADMIN) else USER_TEXT.format(name=hesc(m.from_user.full_name))
-    img = get_setting("welcome_image")
-    if img:
-        await m.answer_photo(img, caption=txt, parse_mode="HTML", reply_markup=kb)
-    else:
-        await m.answer(txt, parse_mode="HTML", reply_markup=kb)
+    await m.answer(txt, parse_mode="HTML", reply_markup=kb)
 
 @router.message(Command("help"))
 async def help_(m: Message):
@@ -429,11 +405,6 @@ async def help_(m: Message):
     url = f"tg://user?id={support}" if support.isdigit() else f"https://t.me/{support.lstrip('@')}"
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Admin bilan bog'lanish", url=url)]])
     await m.answer("Savol yoki muammo bo'lsa admin bilan bog'laning 👇", reply_markup=kb)
-
-@router.message(Command("cancel"))
-async def cancel(m: Message, state: FSMContext):
-    await state.clear()
-    await m.answer("Bekor qilindi. /start ni bosing.")
 
 @router.callback_query(F.data == "home")
 async def home(cb: CallbackQuery):
@@ -472,8 +443,8 @@ def admin_kb():
     rows = [
         ["📊 Statistika", "💳 To'lovlar"],
         ["🛒 Buyurtmalar", "🎴 Kartalar"],
-        ["📢 Reklama", "🛠 Tuzatuv"],
-        ["👥 Hisobot", "⚙️ Sozlamalar"]
+        ["📦 Mahsulotlar", "👥 Hisobot"],
+        ["📢 Reklama", "⚙️ Sozlamalar"]
     ]
     return ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text=t) for t in r] for r in rows], resize_keyboard=True)
 
@@ -484,34 +455,26 @@ class AddCard(StatesGroup):
     number = State()
     holder = State()
 
-class Maint(StatesGroup):
-    reason = State()
+class AddProd(StatesGroup):
+    game = State()
+    title = State()
+    price = State()
+    icon = State()
+
+class AddCat(StatesGroup):
+    key = State()
+    name = State()
+    icon = State()
 
 class Bcast(StatesGroup):
     msg = State()
-
-class WarnUser(StatesGroup):
-    uid = State()
-    reason = State()
-
-class TempBan(StatesGroup):
-    uid = State()
-    hours = State()
-    reason = State()
-
-class PermBan(StatesGroup):
-    uid = State()
-
-class AddAdmin(StatesGroup):
-    uid = State()
 
 async def tell_user_paid(bot, p):
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Davom etish ▶️", web_app=WebAppInfo(url=WEBAPP_URL))],
                                                [InlineKeyboardButton(text="Bekor qilish ✖️", callback_data="home")]])
     try:
         await bot.send_message(p["tg_id"], f"✅ <b>TO'LOV TASDIQLANDI!</b>\n\n+{money(p['exact'])} UZS balansingizga qo'shildi.\n"
-                               "F.I.Sh: <b>{hesc(p.get('holder_name','-'))}</b>\n"
-                               "Savdoni davom ettiramizmi?", parse_mode="HTML", reply_markup=kb)
+                               "F.I.Sh: <b>{}</b>\nSavdoni davom ettiramizmi?".format(hesc(p.get('holder_name','-'))), parse_mode="HTML", reply_markup=kb)
     except Exception:
         pass
 
@@ -530,11 +493,10 @@ async def a_stats(m: Message, state: FSMContext):
                  online=q("SELECT COUNT(*) FROM users WHERE last_seen>?", now - 300),
                  today=q("SELECT COALESCE(SUM(exact),0) FROM payments WHERE status='paid' AND paid_at>=?", t0),
                  allp=q("SELECT COALESCE(SUM(exact),0) FROM payments WHERE status='paid'"),
-                 pend=q("SELECT COUNT(*) FROM payments WHERE status='pending' AND expires>?", now),
                  onew=q("SELECT COUNT(*) FROM orders WHERE status='new'"), odone=q("SELECT COUNT(*) FROM orders WHERE status='done'"),
                  sales=q("SELECT COALESCE(SUM(price),0) FROM orders"), bal=q("SELECT COALESCE(SUM(balance),0) FROM users"))
     await m.answer(f"📊 <b>Statistika</b>\n\n👥 Foydalanuvchilar: <b>{d['users']}</b>\n🟢 Faol: {d['online']}\n🚫 Bloklagan: {d['blocked']}\n\n"
-                   f"💰 Bugungi to'lovlar: <b>{money(d['today'])} UZS</b>\n💰 Jami: {money(d['allp'])} UZS\n⏳ Kutilayotgan: {d['pend']}\n"
+                   f"💰 Bugungi to'lovlar: <b>{money(d['today'])} UZS</b>\n💰 Jami: {money(d['allp'])} UZS\n"
                    f"👛 Balanslar: {money(d['bal'])} UZS\n\n🛒 Yangi buyurtmalar: <b>{d['onew']}</b>\n✅ Bajarilgan: {d['odone']}", parse_mode="HTML")
 
 @adm.message(F.text == "💳 To'lovlar")
@@ -544,10 +506,9 @@ async def a_pay(m: Message, state: FSMContext):
         rows = c.execute("SELECT p.*, u.username, u.full_name FROM payments p LEFT JOIN users u ON u.tg_id=p.tg_id ORDER BY p.id DESC LIMIT 10").fetchall()
     if not rows:
         return await m.answer("Hali to'lovlar yo'q.")
-    ico = {"paid": "✅", "pending": "⏳", "expired": "⌛", "cancelled": "✖️"}
     for r in rows:
         flag = "🔔 Mijoz to'lov qildi!\n" if r["claimed"] else ""
-        await m.answer(f"{flag}{ico.get(r['status'], '•')} #{r['id']} · <b>{money(r['exact'])} UZS</b>\n"
+        await m.answer(f"{flag}#{r['id']} · <b>{money(r['exact'])} UZS</b>\n"
                        f"F.I.Sh: {hesc(r['holder_name'] or 'Kiritilmagan')}\n"
                        f"User: @{r['username'] or '-'} ({r['tg_id']})\nHolat: {r['status']}",
                        parse_mode="HTML", reply_markup=ikb([[("✅ Tasdiqlash", f"pay_ok:{r['id']}"), ("❌ Rad etish", f"pay_no:{r['id']}")]]))
@@ -577,127 +538,103 @@ async def pay_no(cb: CallbackQuery):
     await cb.message.edit_text(cb.message.text + "\n\n❌ RAD ETILDI")
     await cb.answer()
 
-@adm.message(F.text == "👥 Hisobot")
-async def a_users_report(m: Message, state: FSMContext):
+@adm.message(F.text == "📦 Mahsulotlar")
+async def a_products_menu(m: Message, state: FSMContext):
     await state.clear()
     with conn() as c:
-        rows = c.execute("SELECT * FROM users ORDER BY started_at DESC LIMIT 10").fetchall()
-        total = c.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-    kb_list = []
-    for r in rows:
-        kb_list.append([(f"👤 {r['full_name'][:15]} (@{r['username'] or 'yoq'})", f"u_info:{r['tg_id']}")])
-    kb_list.append([("🔄 Yangilash", "refresh_report")])
-    await m.answer(f"👥 <b>Foydalanuvchilar hisoboti</b> (Jami: {total})\nBatafsil ko'rish uchun ustiga bosing:", parse_mode="HTML", reply_markup=ikb(kb_list))
-
-@adm.callback_query(F.data == "refresh_report")
-async def refresh_rep(cb: CallbackQuery):
-    with conn() as c:
-        rows = c.execute("SELECT * FROM users ORDER BY started_at DESC LIMIT 10").fetchall()
-    kb_list = [[(f"👤 {r['full_name'][:15]}", f"u_info:{r['tg_id']}") for r in rows]]
-    kb_list.append([("🔄 Yangilash", "refresh_report")])
-    await cb.message.edit_text("👥 <b>Yangilangan hisobot:</b>", parse_mode="HTML", reply_markup=ikb(kb_list))
-    await cb.answer("Yangilandi!")
-
-@adm.callback_query(F.data.startswith("u_info:"))
-async def u_detail(cb: CallbackQuery):
-    uid = int(cb.data.split(":")[1])
-    with conn() as c:
-        u = c.execute("SELECT * FROM users WHERE tg_id=?", (uid,)).fetchone()
-    if not u:
-        return await cb.answer("Topilmadi", show_alert=True)
-    text = (f"👤 <b>Foydalanuvchi ma'lumoti:</b>\n\n"
-            f"F.I.Sh: {hesc(u['full_name'])}\nUsername: @{u['username'] or '-'}\n"
-            f"Telegram ID: <code>{u['tg_id']}</code>\nBalans: {money(u['balance'])} UZS\n"
-            f"Start vaqti: {tdt(u['started_at'])}\nBloklagan: {'Ha' if u['blocked_bot'] else 'Yoq'}\n"
-            f"Ogohlantirishlar: {u['warn_count']}\nHolat: {'Bloklangan' if u['banned'] else 'Faol'}")
+        cats = c.execute("SELECT * FROM categories").fetchall()
+        prods = c.execute("SELECT * FROM products").fetchall()
+    text = f"📦 <b>Kategoriyalar va Mahsulotlar boshqaruvi</b>\n\nJami kategoriyalar: {len(cats)}\nJami mahsulotlar: {len(prods)}"
     kb = ikb([
-        [("⚠️ Ogohlantirish", f"u_warn:{uid}"), ("⏳ Vaqtincha blok", f"u_tban:{uid}")],
-        [("⛔ To'liq bloklash", f"u_pban:{uid}"), ("🟢 Blokdan chiqarish", f"u_unban:{uid}")]
+        [("➕ Kategoriya qo'shish", "cat_add"), ("➕ Mahsulot qo'shish", "prod_add")],
+        [("📋 Mahsulotlar ro'yxati", "prod_list"), ("📁 Kategoriyalar ro'yxati", "cat_list")]
     ])
-    await cb.message.edit_text(text, parse_mode="HTML", reply_markup=kb)
+    await m.answer(text, parse_mode="HTML", reply_markup=kb)
+
+@adm.callback_query(F.data == "cat_add")
+async def cat_add_start(cb: CallbackQuery, state: FSMContext):
+    await state.set_state(AddCat.key)
+    await cb.message.answer("Kategoriya kodini kiriting (masalan: `pubg`, `free_fire`):", parse_mode="HTML")
     await cb.answer()
 
-@adm.callback_query(F.data.startswith("u_warn:"))
-async def cb_warn(cb: CallbackQuery, state: FSMContext):
-    uid = int(cb.data.split(":")[1])
-    await state.set_state(WarnUser.reason)
-    await state.update_data(uid=uid)
-    await cb.message.answer("Ogohlantirish sababini yuboring:")
-    await cb.answer()
+@adm.message(AddCat.key)
+async def cat_key(m: Message, state: FSMContext):
+    await state.update_data(key=m.text.strip().lower())
+    await state.set_state(AddCat.name)
+    await m.answer("Kategoriya nomini kiriting (masalan: `PUBG Mobile`):")
 
-@adm.message(WarnUser.reason)
-async def send_warn(m: Message, state: FSMContext):
+@adm.message(AddCat.name)
+async def cat_name(m: Message, state: FSMContext):
+    await state.update_data(name=m.text.strip())
+    await state.set_state(AddCat.icon)
+    await m.answer("Kategoriya ikonkasini (emoji yoki rasm belgisi) yuboring (masalan: `🎯`):")
+
+@adm.message(AddCat.icon)
+async def cat_save(m: Message, state: FSMContext):
     d = await state.get_data()
-    uid, reason = d["uid"], m.text
     await state.clear()
     with conn() as c:
-        c.execute("UPDATE users SET warn_count=warn_count+1 WHERE tg_id=?", (uid,))
-    try:
-        support = get_setting("support_id")
-        sup_url = f"https://t.me/{support.lstrip('@')}" if not support.isdigit() else f"tg://user?id={support}"
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Admin bilan bog'lanish", url=sup_url)]])
-        await m.bot.send_message(uid, f"⚠️ <b>OGOHLANTIRISH!</b>\n\nSabab: {hesc(reason)}", parse_mode="HTML", reply_markup=kb)
-        await m.answer("✅ Ogohlantirish yuborildi.")
-    except Exception:
-        await m.answer("❌ Xabar yuborib bo'lmadi (foydalanuvchi botni bloklagan).")
+        c.execute("INSERT OR REPLACE INTO categories(key,name,icon) VALUES(?,?,?)", (d["key"], d["name"], m.text.strip()))
+    await m.answer("✅ Kategoriya muvaffaqiyatli qo'shildi!")
 
-@adm.callback_query(F.data.startswith("u_tban:"))
-async def cb_tban(cb: CallbackQuery, state: FSMContext):
-    uid = int(cb.data.split(":")[1])
-    await state.set_state(TempBan.hours)
-    await state.update_data(uid=uid)
-    await cb.message.answer("Necha soatga bloklash kerakligini raqamda yuboring (masalan: 24):")
+@adm.callback_query(F.data == "prod_add")
+async def prod_add_start(cb: CallbackQuery, state: FSMContext):
+    with conn() as c:
+        cats = c.execute("SELECT key, name FROM categories").fetchall()
+    if not cats:
+        return await cb.answer("Avval kategoriya qo'shing!", show_alert=True)
+    kb = ikb([[(c["name"], f"p_cat:{c['key']}")] for c in cats])
+    await cb.message.answer("Mahsulot qaysi kategoriyaga tegishli ekanini tanlang:", reply_markup=kb)
     await cb.answer()
 
-@adm.message(TempBan.hours)
-async def tban_hours(m: Message, state: FSMContext):
+@adm.callback_query(F.data.startswith("p_cat:"))
+async def prod_cat_chosen(cb: CallbackQuery, state: FSMContext):
+    game = cb.data.split(":")[1]
+    await state.update_data(game=game)
+    await state.set_state(AddProd.title)
+    await cb.message.answer("Mahsulot nomini kiriting (masalan: `60 UC` yoki `100 💎`):")
+    await cb.answer()
+
+@adm.message(AddProd.title)
+async def prod_title(m: Message, state: FSMContext):
+    await state.update_data(title=m.text.strip())
+    await state.set_state(AddProd.price)
+    await m.answer("Narxini so'mda kiriting (masalan: `11000`):")
+
+@adm.message(AddProd.price)
+async def prod_price(m: Message, state: FSMContext):
     try:
-        hours = int(m.text)
+        price = int(m.text.strip())
     except ValueError:
         return await m.answer("Faqat raqam kiriting:")
-    await state.update_data(hours=hours)
-    await state.set_state(TempBan.reason)
-    await m.answer("Vaqtincha bloklash sababini yuboring:")
+    await state.update_data(price=price)
+    await state.set_state(AddProd.icon)
+    await m.answer("Mahsulot ikonkasini (emoji) yuboring (masalan: `💎`):")
 
-@adm.message(TempBan.reason)
-async def tban_send(m: Message, state: FSMContext):
+@adm.message(AddProd.icon)
+async def prod_save(m: Message, state: FSMContext):
     d = await state.get_data()
-    uid, hours, reason = d["uid"], d["hours"], m.text
     await state.clear()
-    until = int(time.time()) + hours * 3600
     with conn() as c:
-        c.execute("UPDATE users SET banned=1, ban_until=?, ban_reason=? WHERE tg_id=?", (until, reason, uid))
-    try:
-        support = get_setting("support_id")
-        sup_url = f"https://t.me/{support.lstrip('@')}" if not support.isdigit() else f"tg://user?id={support}"
-        kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Admin bilan bog'lanish", url=sup_url)]])
-        await m.bot.send_message(uid, f"⏳ <b>VAQTINCHA BLOKLANDINGIZ!</b>\n\nSabab: {hesc(reason)}\nTugash vaqti: {tdt(until)}", parse_mode="HTML", reply_markup=kb)
-        await m.answer(f"✅ Foydalanuvchi {hours} soatga bloklandi.")
-    except Exception:
-        await m.answer("Bloklandi.")
+        c.execute("INSERT INTO products(game,title,price,icon) VALUES(?,?,?,?)", (d["game"], d["title"], d["price"], m.text.strip()))
+    await m.answer("✅ Mahsulot muvaffaqiyatli qo'shildi!")
 
-@adm.callback_query(F.data.startswith("u_pban:"))
-async def cb_pban(cb: CallbackQuery):
-    uid = int(cb.data.split(":")[1])
+@adm.callback_query(F.data == "prod_list")
+async def prod_list(cb: CallbackQuery):
     with conn() as c:
-        c.execute("UPDATE users SET banned=1, ban_until=2147483647, ban_reason='Qoidabuzarlik' WHERE tg_id=?", (uid,))
-    try:
-        await cb.bot.send_message(uid, "⛔ Siz botdan butunlay bloklandingiz.")
-    except Exception:
-        pass
-    await cb.message.edit_text("✅ Foydalanuvchi bloklandi.")
+        prods = c.execute("SELECT * FROM products ORDER BY game, price").fetchall()
+    if not prods:
+        return await cb.answer("Mahsulotlar yo'q", show_alert=True)
+    lines = [f"{p['icon']} <b>{p['title']}</b> ({p['game']}) — {money(p['price'])} UZS" for p in prods[:20]]
+    await cb.message.edit_text("📦 <b>Mahsulotlar:</b>\n\n" + "\n".join(lines), parse_mode="HTML")
     await cb.answer()
 
-@adm.callback_query(F.data.startswith("u_unban:"))
-async def cb_unban(cb: CallbackQuery):
-    uid = int(cb.data.split(":")[1])
+@adm.callback_query(F.data == "cat_list")
+async def cat_list(cb: CallbackQuery):
     with conn() as c:
-        c.execute("UPDATE users SET banned=0, ban_until=0, ban_reason='' WHERE tg_id=?", (uid,))
-    try:
-        await cb.bot.send_message(uid, "🟢 Blokdan chiqarildingiz! /start bosing.")
-    except Exception:
-        pass
-    await cb.message.edit_text("✅ Blokdan chiqarildi.")
+        cats = c.execute("SELECT * FROM categories").fetchall()
+    lines = [f"{c['icon']} <b>{c['name']}</b> (<code>{c['key']}</code>)" for c in cats]
+    await cb.message.edit_text("📁 <b>Kategoriyalar:</b>\n\n" + "\n".join(lines), parse_mode="HTML")
     await cb.answer()
 
 @adm.message(F.text == "🎴 Kartalar")
@@ -738,36 +675,40 @@ async def card_holder(m: Message, state: FSMContext):
         c.execute("INSERT INTO cards(number,holder) VALUES(?,?)", (d["number"], (m.text or "").upper()[:40]))
     await m.answer("✅ Karta muvaffaqiyatli qo'shildi!")
 
-@adm.message(F.text == "🛠 Tuzatuv")
-async def a_maint(m: Message):
-    if get_setting("maintenance") == "1":
-        await m.answer(f"🛠 Tuzatuv <b>YOQILGAN</b>.\nSabab: {hesc(get_setting('maintenance_reason'))}", parse_mode="HTML", reply_markup=ikb([[("🟢 O'chirish", "mt_off")]]))
-    else:
-        await m.answer("🛠 Tuzatuv o'chiq.", reply_markup=ikb([[("🔴 Yoqish", "mt_on")]]))
+@adm.message(F.text == "👥 Hisobot")
+async def a_users_report(m: Message):
+    with conn() as c:
+        rows = c.execute("SELECT * FROM users ORDER BY started_at DESC LIMIT 10").fetchall()
+        total = c.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    kb_list = [[(f"👤 {r['full_name'][:15]} (@{r['username'] or 'yoq'})", f"u_info:{r['tg_id']}") for r in rows]]
+    kb_list.append([("🔄 Yangilash", "refresh_report")])
+    await m.answer(f"👥 <b>Foydalanuvchilar hisoboti</b> (Jami: {total})", parse_mode="HTML", reply_markup=ikb(kb_list))
 
-@adm.callback_query(F.data == "mt_on")
-async def mt_on(cb: CallbackQuery, state: FSMContext):
-    await state.set_state(Maint.reason)
-    await cb.message.answer("Tuzatuv sababini kiriting:")
-    await cb.answer()
+@adm.callback_query(F.data == "refresh_report")
+async def refresh_rep(cb: CallbackQuery):
+    with conn() as c:
+        rows = c.execute("SELECT * FROM users ORDER BY started_at DESC LIMIT 10").fetchall()
+    kb_list = [[(f"👤 {r['full_name'][:15]}", f"u_info:{r['tg_id']}") for r in rows]]
+    kb_list.append([("🔄 Yangilash", "refresh_report")])
+    await cb.message.edit_text("👥 <b>Yangilangan hisobot:</b>", parse_mode="HTML", reply_markup=ikb(kb_list))
+    await cb.answer("Yangilandi!")
 
-@adm.message(Maint.reason)
-async def mt_reason(m: Message, state: FSMContext):
-    set_setting("maintenance_reason", m.text or "Texnik ishlar")
-    set_setting("maintenance", "1")
-    await state.clear()
-    await m.answer("🛠 Tuzatuv yoqildi.")
-
-@adm.callback_query(F.data == "mt_off")
-async def mt_off(cb: CallbackQuery):
-    set_setting("maintenance", "0")
-    await cb.message.edit_text("🟢 Tuzatuv o'chirildi.")
+@adm.callback_query(F.data.startswith("u_info:"))
+async def u_detail(cb: CallbackQuery):
+    uid = int(cb.data.split(":")[1])
+    with conn() as c:
+        u = c.execute("SELECT * FROM users WHERE tg_id=?", (uid,)).fetchone()
+    if not u:
+        return await cb.answer("Topilmadi", show_alert=True)
+    text = (f"👤 <b>Foydalanuvchi ma'lumoti:</b>\n\nF.I.Sh: {hesc(u['full_name'])}\n"
+            f"Username: @{u['username'] or '-'}\nID: <code>{u['tg_id']}</code>\nBalans: {money(u['balance'])} UZS")
+    await cb.message.edit_text(text, parse_mode="HTML")
     await cb.answer()
 
 @adm.message(F.text == "📢 Reklama")
 async def a_bcast(m: Message, state: FSMContext):
     await state.set_state(Bcast.msg)
-    await m.answer("📢 Reklama xabarini yuboring (matn, rasm, video va h.k.):")
+    await m.answer("📢 Reklama xabarini yuboring (matn, rasm, video):")
 
 @adm.message(Bcast.msg)
 async def bc_preview(m: Message, state: FSMContext):
