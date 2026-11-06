@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="uz"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Wazzr BOT</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a13;--card:#0e1524;--s2:#141d31;--line:#1f2a42;--tx:#f3f6fc;--mut:#8d9ab6;--ac:#19e39b;--ac2:#3db8ff;--warn:#ffbf3c;--bad:#ff5d7a;--hd:#060a13d9;--on:#03150e;color-scheme:dark}
+[data-t=light]{--bg:#f0f3f9;--card:#fff;--s2:#f4f7fb;--line:#dde4f0;--tx:#0e1729;--mut:#5b6985;--ac:#00a56d;--ac2:#1a8fe0;--warn:#c98a00;--hd:#f0f3f9d9;--on:#fff;color-scheme:light}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--tx);font:500 15px/1.45 Manrope,"Segoe UI",Roboto,system-ui,sans-serif;padding-bottom:92px;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:340px;background:radial-gradient(70% 100% at 50% 0,#19e39b1f,transparent 72%);pointer-events:none;z-index:0}
+body[data-t=light]::before{opacity:0}
+header,main,nav,#bar{position:relative;z-index:1}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;transition:transform .12s,opacity .12s}
+button:active{transform:scale(.97)}
+input{font:inherit;font-weight:600;color:var(--tx);background:var(--s2);border:1px solid var(--line);border-radius:14px;padding:15px 16px;width:100%;outline:0;transition:border-color .15s,box-shadow .15s}
+input:focus{border-color:var(--ac);box-shadow:0 0 0 4px #19e39b22}
+[hidden]{display:none!important}
+header{padding:12px 16px;position:sticky;top:0;background:var(--hd);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:5;border-bottom:1px solid var(--line)}
+.me{display:flex;align-items:center;gap:12px}.me b{font-weight:700}.me small{display:block;color:var(--ac2);font-size:12px;font-weight:600}
+.av{width:42px;height:42px;border-radius:50%;background:linear-gradient(140deg,var(--ac),var(--ac2));color:var(--on);display:grid;place-items:center;font-weight:800;font-size:17px;flex:none}
+.bal{margin-left:auto;background:var(--s2);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 14px;color:var(--ac);font-size:14px;display:flex;align-items:center;gap:5px}
+.bal b{font-weight:800}.bal i{width:24px;height:24px;border-radius:50%;background:var(--ac);color:var(--on);display:grid;place-items:center;font-style:normal;font-weight:800;margin-left:4px}
+.v{padding:16px 16px 24px}#game{padding-bottom:96px}
+.banner{border-radius:24px;padding:22px 20px;background:linear-gradient(125deg,#0a3f9c 0,#0b2468 55%,#067a57 120%);margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:10px;overflow:hidden;position:relative;color:#fff;box-shadow:0 14px 34px #0a3f9c33}
+.banner b{font-size:24px;line-height:1.15;display:block;font-weight:800;letter-spacing:-.4px}.banner span{color:#cfe0ff;font-size:13px;display:block;margin-top:8px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.tags em{font-style:normal;font-size:11px;font-weight:700;background:#ffffff1f;border:1px solid #ffffff2a;border-radius:999px;padding:4px 10px}
+.gem{width:88px;height:88px;flex:none;filter:drop-shadow(0 8px 18px #3db8ff88);transform:rotate(8deg)}
+h3{margin:4px 2px 12px;font-size:17px;font-weight:800;letter-spacing:-.2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 6px 12px;text-align:center;font-size:12px;font-weight:700;line-height:1.25}
+.g i{display:grid;place-items:center;aspect-ratio:1;margin:0 0 9px;border-radius:15px;font-size:34px;font-style:normal}
+.p{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:14px 8px 16px;text-align:center;position:relative;transition:border-color .15s,box-shadow .15s,transform .12s}
+.p.on{border-color:var(--ac);box-shadow:0 0 0 4px #19e39b1f}
+.p.on::after{content:"✓";position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;background:var(--ac);color:var(--on);font-size:12px;font-weight:800;display:grid;place-items:center}
+.p i{display:grid;place-items:center;height:76px;margin-bottom:10px;border-radius:16px;font-size:40px;font-style:normal;background:linear-gradient(160deg,#3db8ff2e,#19e39b14)}
+.p b{display:block;font-weight:700;font-size:14px}.p span{color:var(--ac);font-weight:800;font-size:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.back{display:flex;align-items:center;gap:8px;font-weight:800;margin-bottom:16px;font-size:19px;letter-spacing:-.3px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mut{color:var(--mut)}.ac{color:var(--ac)}small{font-size:12px;font-weight:600}
+.btn{display:block;width:100%;padding:16px;border-radius:16px;font-weight:800;font-size:15px;background:linear-gradient(180deg,#2cf0ab,var(--ac));color:var(--on);text-align:center;box-shadow:0 10px 24px #19e39b33}
+.btn.b2{background:linear-gradient(180deg,#63ccff,var(--ac2));box-shadow:0 10px 24px #3db8ff33}.btn:disabled{opacity:.35;box-shadow:none}.btn.ghost{background:none;color:var(--mut);padding:12px;box-shadow:none}
+.btn.bad{background:#ff5d7a1c;color:var(--bad);border:1px solid #ff5d7a66;box-shadow:none}
+.chip{display:inline-block;padding:9px 13px;border-radius:12px;background:var(--s2);border:1px solid var(--line);margin:0 6px 8px 0;font-size:13px;font-weight:700}
+.chip.on{border-color:var(--ac2);color:var(--ac2)}
+#bar{position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 10px 10px 16px;display:flex;align-items:center;gap:14px;z-index:6;box-shadow:0 12px 32px #0008}
+#bar .btn{width:auto;flex:1;padding:14px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--hd);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 6px max(8px,env(safe-area-inset-bottom));z-index:7}
+nav button{flex:1;font-size:11px;font-weight:700;color:var(--mut);padding:4px 0}
+nav svg{width:24px;height:24px;display:block;margin:0 auto 3px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav .on{color:var(--ac)}nav .on svg{filter:drop-shadow(0 0 8px #19e39b88)}
+#mod{position:fixed;inset:0;background:#02060ccc;backdrop-filter:blur(4px);z-index:20;display:flex;align-items:flex-end;justify-content:center;overflow:auto}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:28px 28px 0 0;width:100%;max-width:480px;padding:22px 18px max(20px,env(safe-area-inset-bottom));animation:up .28s cubic-bezier(.2,.8,.2,1);max-height:94vh;overflow:auto}
+.sheet::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:var(--line);margin:-10px auto 14px}
+@keyframes up{from{transform:translateY(48px);opacity:0}}
+.sheet h2{font-size:19px;font-weight:800;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;letter-spacing:-.3px}
+.sheet h2 button{width:32px;height:32px;border-radius:50%;background:var(--s2);color:var(--mut);font-size:14px}
+.warn{border:1px solid #ffbf3c55;background:#ffbf3c14;border-radius:16px;padding:13px 14px;margin:12px 0;font-size:13px;line-height:1.5}.warn b{color:var(--warn)}
+.card{border:1px solid #19e39b55;background:linear-gradient(145deg,#19e39b18,#3db8ff0d);border-radius:18px;padding:15px;margin:12px 0}
+.num{font:800 20px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.5px;margin:6px 0}
+.cp{border:1px solid var(--ac);color:var(--ac);border-radius:11px;padding:9px 14px;font-weight:800;font-size:13px;background:#19e39b12}
+.ring{position:relative;width:112px;height:112px;margin:2px auto 8px}.ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.ring circle:last-child{transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 6px #3db8ff99)}
+.ring div{position:absolute;inset:0;display:grid;place-items:center;font:800 24px ui-monospace,Menlo,monospace}
+.ok{width:76px;height:76px;border-radius:50%;margin:0 auto 10px;display:grid;place-items:center;font-size:38px;font-weight:800;color:var(--on);background:linear-gradient(140deg,#2cf0ab,var(--ac));box-shadow:0 0 0 10px #19e39b22,0 14px 30px #19e39b55;animation:pop .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.sw{width:50px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none}.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--ac2);transition:.2s}
+[data-t=light] .sw::after{left:23px}
+.li{display:flex;align-items:center;gap:13px;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:10px}
+.li>span:first-child{width:44px;height:44px;border-radius:14px;background:var(--s2);display:grid;place-items:center;flex:none;font-size:22px!important}
+.li b{font-weight:700}.li small{display:block;color:var(--mut);margin-top:1px}.li .r{margin-left:auto;text-align:right}
+.sk{background:linear-gradient(90deg,var(--card) 30%,var(--s2) 50%,var(--card) 70%);background-size:300% 100%;animation:sh 1.3s infinite;border-radius:20px;border:1px solid var(--line)}
+@keyframes sh{to{background-position:-150% 0}}
+#toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);background:#101a2ef2;border:1px solid var(--line);color:#fff;padding:11px 18px;border-radius:14px;z-index:30;opacity:0;transition:.25s;pointer-events:none;font-weight:700;font-size:14px;white-space:nowrap}
+#toast.s{opacity:1;transform:translateX(-50%)}
+#lock{position:fixed;inset:0;background:var(--bg);z-index:40;display:grid;place-items:center;text-align:center;padding:30px}
+canvas{width:100%;border-radius:14px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head>
+<body data-t="dark">
+<div id="lock" hidden></div>
+<header id="hd"></header>
+<main>
+<section id="home" class="v"><div class="sk" style="height:140px;margin-bottom:22px"></div><div class="grid"><div class="sk" style="height:112px"></div><div class="sk" style="height:112px"></div><div class="sk" style="height:112px"></div><div class="sk" style="height:112px"></div><div class="sk" style="height:112px"></div><div class="sk" style="height:112px"></div></div></section><section id="game" class="v" hidden></section>
+<section id="chk" class="v" hidden></section><section id="his" class="v" hidden></section><section id="pro" class="v" hidden></section>
+</main>
+<div id="bar" hidden></div>
+<nav id="nav">
+<button data-v="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Bosh sahifa</button><button data-v="bal"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h14a1 1 0 0 0 1-1v-9a1 1 0 0 0-1-1H5a2 2 0 0 1-2-2z"/><circle cx="16.5" cy="14.5" r="1"/></svg>Balans</button>
+<button data-v="his"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Tarix</button><button data-v="pro"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Profil</button></nav>
+<div id="mod" hidden><div class="sheet" id="sheet"></div></div><div id="toast"></div>
+<script>
+const tg=Telegram.WebApp;tg.ready();tg.expand();try{tg.setHeaderColor("#060a13");tg.setBackgroundColor("#060a13")}catch(e){}
+const hp=()=>{try{tg.HapticFeedback.impactOccurred("light")}catch(e){}};
+const $=s=>document.querySelector(s),fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const dt=t=>new Date(t*1000).toLocaleString("ru-RU",{timeZone:"Asia/Tashkent",dateStyle:"short",timeStyle:"short"}).replace(",","");
+const GAMES=[["free_fire","Free Fire","🔥","#ff7a18"],["pubg","PUBG Mobile","🎯","#c98a00"],["mlbb","Mobile Legends","⚔️","#6c5ce7"],["steam","Steam","🎮","#1b6cff"],["tg_premium","Telegram Premium","✈️","#2aabee"],["tg_stars","Telegram Stars","⭐","#b88700"],["brawl","Brawl Stars","💀","#4f9d00"],["eafc","EAFC Mobile (ID)","⚽","#0aa56b"],["lords","Lords Mobile","👑","#a67c00"]];
+let S,game,sel,uid="",uidOK=false,pay,tmr,pol,view="home";
+async function api(p,b={}){const r=await fetch("/api/"+p,{method:"POST",headers:{"Content-Type":"application/json","X-Init":tg.initData},body:JSON.stringify(b)});
+const j=await r.json().catch(()=>({error:"Server javob bermadi"}));
+if(j.maintenance){const l=$("#lock");l.hidden=false;l.innerHTML=`<div><h2>🛠 Vaqtincha tuzatuv</h2><p style="color:var(--bad);margin-top:12px">${esc(j.maintenance)}</p></div>`}return j}
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("s");setTimeout(()=>e.classList.remove("s"),2200)}
+function go(u){u.startsWith("https://t.me")?tg.openTelegramLink(u):(location.href=u)}
+function show(v){view=v;document.querySelectorAll(".v").forEach(e=>e.hidden=e.id!==v);$("#bar").hidden=v!=="game";
+document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===(v==="game"||v==="chk"?"home":v)));scrollTo(0,0)}
+function modal(h){$("#sheet").innerHTML=h;$("#mod").hidden=false}
+function closeM(){clearInterval(tmr);clearInterval(pol);$("#mod").hidden=true}
+async function load(){S=await api("state");if(!S.user)return;const u=S.user;
+$("#hd").innerHTML=`<div class="me"><div class="av">${esc(u.name[0]||"M")}</div><div><b>${esc(u.name)}</b><small>ID: ${u.usr_id}</small></div><button class="bal" onclick="topup()"><b>${fmt(u.balance)}</b> UZS <i>+</i></button></div>`;
+renderHome();renderHis();renderPro()}
+function renderHome(){$("#home").innerHTML=`<div class="banner"><div><b>Tez. Xavfsiz.<br>Ishonchli.</b><span>Adminlarsiz avtomatik donat xizmati</span><div class="tags"><em>Tezkor</em><em>100% xavfsiz</em><em>24/7</em></div></div><svg class="gem" viewBox="0 0 64 64"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8ff5ff"/><stop offset="1" stop-color="#1d6bff"/></linearGradient></defs><path d="M32 4 58 24 32 60 6 24z" fill="url(#gg)"/><path d="M6 24h52M20 24l12-20 12 20M20 24l12 36 12-36" fill="none" stroke="#fff7" stroke-width="1.5"/></svg></div><h3>O’yinlar</h3><div class="grid">${GAMES.map(g=>`<button class="g" onclick="openGame('${g[0]}')"><i style="background:linear-gradient(150deg,${g[3]}77,${g[3]}1f)">${g[2]}</i>${g[1]}</button>`).join("")}</div>`}
+function openGame(id){game=GAMES.find(g=>g[0]===id);sel=null;const ps=S.products.filter(p=>p.game===id);
+$("#game").innerHTML=`<button class="back" onclick="show('home')">‹ ${game[1]}</button>`+(ps.length?`<div class="grid2">${ps.map(p=>`<button class="p" data-id="${p.id}" onclick="pick(${p.id})"><i>${p.icon}</i><b>${esc(p.title)}</b><span>${fmt(p.price)} UZS</span></button>`).join("")}</div>`:`<div class="box mut">Bu bo‘lim tez orada ochiladi.</div>`);
+bar();show("game");if(S.cart){const c=ps.find(p=>p.id===S.cart.product_id);if(c)pick(c.id)}}
+function pick(id){hp();sel=S.products.find(p=>p.id===id);document.querySelectorAll(".p").forEach(e=>e.classList.toggle("on",+e.dataset.id===id));bar()}
+function bar(){$("#bar").innerHTML=`<div><small class="mut">JAMI</small><div><b style="font-size:19px">${fmt(sel?sel.price:0)}</b> <span class="mut">UZS</span></div></div><button class="btn" ${sel?"":"disabled"} onclick="toChk()">Davom etish ›</button>`}
+function toChk(){uid=S.cart&&S.cart.product_id===sel.id?S.cart.player_id:"";uidOK=false;api("cart",{product_id:sel.id,player_id:uid});renderChk();show("chk")}
+function renderChk(){const ids=S.ids.map(i=>`<button class="chip ${i===uid?"on":""}" onclick="setUid('${esc(i)}')">${esc(i)}</button>`).join("");
+$("#chk").innerHTML=`<button class="back" onclick="openGame('${game[0]}')">‹ Buyurtmani tekshirish</button>
+<div class="box row"><div><small class="mut">SIZNING BUYURTMANGIZ</small><div><b>${esc(sel.title)}</b></div><small class="mut">${game[1]}</small></div><b class="ac">${fmt(sel.price)} UZS</b></div>
+${ids?`<small class="mut">Oxirgi ishlatilgan IDlar</small><div style="margin:6px 0 10px">${ids}</div>`:""}
+<input id="uid" inputmode="numeric" placeholder="Player ID (UID)" value="${esc(uid)}" oninput="uid=this.value.trim();uidOK=false;upd()">
+<button class="btn b2" id="vb" style="margin:10px 0" onclick="chkUid()">Tekshirish</button><div id="vr"></div>
+<div class="box row"><b>Umumiy summa</b><b class="ac">${fmt(sel.price)} UZS</b></div><button class="btn" id="pb" onclick="doPay()" disabled>To‘lovga o‘tish ›</button>`;upd()}
+function setUid(i){uid=i;uidOK=false;$("#uid").value=i;chkUid()}
+function upd(){const p=$("#pb");if(p)p.disabled=!uidOK;const r=$("#vr");if(r)r.innerHTML=uidOK?`<div class="box ac">✅ ID formati to‘g‘ri: ${esc(uid)}</div>`:""}
+async function chkUid(){if(!uid)return toast("ID kiriting");const r=await api("checkid",{game:game[0],uid});uidOK=!!r.ok;upd();if(uidOK)api("cart",{product_id:sel.id,player_id:uid});else toast("ID noto‘g‘ri")}
+async function doPay(){const r=await api("order",{product_id:sel.id,player_id:uid});
+if(r.error==="insufficient"){const need=r.need-r.balance;return modal(`<h2>Mablag’ yetarli emas <button onclick="closeM()">✕</button></h2><div style="text-align:center;margin:14px 0"><div style="font-size:42px">⚠️</div><p class="mut">Joriy balansingiz: <b style="color:var(--tx)">${fmt(r.balance)} UZS</b></p><p class="mut">Kerakli summa: <b class="ac">${fmt(r.need)} UZS</b></p></div><button class="btn" onclick="topup(${need})">Hisobni to‘ldirish</button><button class="btn ghost" onclick="closeM()">Bekor qilish</button>`)}
+if(r.error)return toast(r.error);toast("Buyurtma qabul qilindi ✅");await load();show("his")}
+function topup(pre){if(S.pending){pay=S.pending;return payView()}
+modal(`<h2>Hisobni to‘ldirish <button onclick="closeM()">✕</button></h2><div class="box mut" style="font-size:13px">Faqat Uzcard / Humo kartasi. Summani kiriting va ko‘rsatilgan kartaga aniq shu summani o‘tkazing. To‘lov 1–3 daqiqada avtomatik balansga tushadi.</div>
+<small class="mut">SUMMA (UZS)</small><input id="am" inputmode="numeric" value="${pre?Math.max(1000,Math.ceil(pre/1000)*1000):10000}" style="margin:6px 0 10px">
+<div>${[10000,25000,50000,100000,200000,500000].map(a=>`<button class="chip" onclick="$('#am').value=${a}">${fmt(a)} UZS</button>`).join("")}</div><button class="btn b2" style="margin-top:8px" onclick="mkPay()">Davom etish</button>`)}
+async function mkPay(){const r=await api("topup",{amount:+$("#am").value.replace(/\D/g,"")});if(r.error)return toast(r.error);pay=r;S.pending=r;payView()}
+function payView(){const end=Date.now()+pay.left*1000,C=276.5;
+modal(`<h2>To‘lov oynasi <button onclick="closeM()">✕</button></h2><div class="ring"><svg width="104" height="104"><circle cx="52" cy="52" r="44" fill="none" stroke="var(--line)" stroke-width="7"/><circle id="rg" cx="52" cy="52" r="44" fill="none" stroke="var(--ac2)" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}"/></svg><div id="tm"></div></div><p class="mut" style="text-align:center;font-size:12px;margin-top:-4px">QOLDI · to‘lov avtomatik tekshirilmoqda</p>
+<div class="card"><div class="row"><b>${esc(pay.holder||"Karta egasi")}</b><span class="chip ac" style="margin:0">UZCARD / HUMO</span></div><small class="mut">KARTA RAQAM</small><div class="row"><div class="num">${pay.card.replace(/(\d{4})(?=\d)/g,"$1 ")}</div><button class="cp" onclick="cp('${pay.card}')">Copy</button></div></div>
+<div class="box row" style="border-color:var(--warn)"><div><small class="mut">TO‘LANADIGAN SUMMA</small><div style="font-size:24px;font-weight:700;color:var(--warn)">${fmt(pay.exact)} UZS</div></div><button class="cp" style="border-color:var(--warn);color:var(--warn)" onclick="cp('${pay.exact}')">Copy</button></div>
+<div class="warn"><b>⚠ MUHIM ESLATMA!</b><br>Hatto 1 so‘m kam yoki ko‘p bo‘lsa ham to‘lov avtomatik qabul qilinmaydi. Aniq summani o‘tkazing (1–3 daqiqada avtomatik tushadi).</div>
+<button class="btn b2" style="margin-bottom:10px" onclick="claim()">✅ To‘lov qildim</button><button class="btn bad" onclick="cancelPay()">Bekor qilish</button>`);
+const tick=()=>{const l=Math.max(0,Math.round((end-Date.now())/1000));$("#tm").textContent=String(l/60|0).padStart(2,"0")+":"+String(l%60).padStart(2,"0");$("#rg").style.strokeDashoffset=C*(1-l/300);if(!l){closeM();S.pending=null;toast("Vaqt tugadi. To‘lov qilgan bo‘lsangiz, qo‘llab-quvvatlashga yozing")}};tick();tmr=setInterval(tick,1000);
+pol=setInterval(async()=>{const r=await api("topup_status",{id:pay.id});if(r.status==="paid"){closeM();S.pending=null;await load();paid()}else if(r.status!=="pending"){closeM();S.pending=null}},3000)}
+function paid(){modal(`<div style="text-align:center"><div class="ok">✓</div><h2 style="justify-content:center;margin:8px 0">TO‘LOV QABUL QILINDI!</h2><p class="mut">Balansingiz: <b class="ac">${fmt(S.user.balance)} UZS</b><br>Bundan oldingi savdoni davom ettiramizmi?</p></div><div style="margin-top:14px">${S.cart&&sel?`<button class="btn" onclick="closeM();toChk()">Davom etish</button>`:""}<button class="btn ghost" onclick="closeM();show('home')">Bekor qilish</button></div>`)}
+async function claim(){await api("topup_claim",{id:pay.id});toast("Admin tekshirmoqda, biroz kuting…")}
+async function cancelPay(){await api("topup_cancel",{id:pay.id});S.pending=null;closeM();toast("To‘lov bekor qilindi")}
+function cp(t){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).catch(()=>{const i=document.createElement("input");i.value=t;document.body.append(i);i.select();document.execCommand("copy");i.remove()}).finally(()=>toast("Nusxalandi"))}
+function renderHis(){$("#his").innerHTML=`<h3>Buyurtmalar tarixi</h3>`+(S.history.length?S.history.map((h,i)=>`<button class="li" onclick="receipt(${i})"><span style="font-size:26px">${h.t==="topup"?"👛":"🛒"}</span><div><b>${esc(h.title)}</b><small>${esc((GAMES.find(g=>g[0]===h.game)||["","Balans"])[1])} · ${dt(h.ts)}</small></div><div class="r"><b class="${h.t==="topup"?"ac":""}">${h.t==="topup"?"+":"−"}${fmt(h.amount)}</b><small>${h.t==="topup"?"Qabul qilindi":h.status==="done"?"Bajarildi":"Kutilmoqda"}</small></div></button>`).join(""):`<div class="box mut">Hozircha xaridlar yo‘q. Bosh sahifadan o‘yin tanlang.</div>`)+`<div class="box mut" style="font-size:13px">Jami xaridlar: ${S.user.orders} ta</div>`}
+function receipt(i){const h=S.history[i];modal(`<h2>Chek <button onclick="closeM()">✕</button></h2><canvas id="cv" width="640" height="760"></canvas><button class="btn" style="margin-top:12px" onclick="dl(${i})">Chekni yuklash</button>`);draw(h)}
+function draw(h){const c=$("#cv"),x=c.getContext("2d"),g=GAMES.find(g=>g[0]===h.game);x.fillStyle="#0a1020";x.fillRect(0,0,640,760);
+const gr=x.createLinearGradient(0,0,640,0);gr.addColorStop(0,"#0b3a8f");gr.addColorStop(1,"#00a36c");x.fillStyle=gr;x.fillRect(0,0,640,150);
+x.fillStyle="#fff";x.font="700 40px Segoe UI,Roboto,sans-serif";x.fillText("WAZZR BOT",40,80);x.font="22px Segoe UI,Roboto,sans-serif";x.fillText("To‘lov cheki #"+h.id,40,118);
+const rows=[["Mahsulot",h.title],["Kategoriya",g?g[1]:"Balans"],["Summa",fmt(h.amount)+" UZS"],["Player ID",h.pid||"—"],["To‘lov vaqti",dt(h.ts)],["Holati",h.t==="topup"?"Qabul qilindi":h.status==="done"?"Bajarildi":"Kutilmoqda"],["Mijoz",S.user.usr_id]];
+rows.forEach((r,k)=>{const y=215+k*72;x.fillStyle="#8a97b2";x.font="20px Segoe UI,Roboto,sans-serif";x.fillText(r[0],40,y);x.fillStyle="#fff";x.font="700 26px Segoe UI,Roboto,sans-serif";x.fillText(String(r[1]).slice(0,28),40,y+34);x.fillStyle="#1c2740";x.fillRect(40,y+48,560,1)});
+x.fillStyle="#00d68f";x.font="600 20px Segoe UI,Roboto,sans-serif";x.fillText("Rahmat! Wazzr bilan xarid qilganingiz uchun.",40,735)}
+function dl(i){draw(S.history[i]);$("#cv").toBlob(async b=>{const f=new File([b],`chek-${S.history[i].id}.jpg`,{type:"image/jpeg"});
+if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return}catch(e){}}
+const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=f.name;a.click()},"image/jpeg",.95)}
+function renderPro(){const u=S.user;$("#pro").innerHTML=`<div style="text-align:center;margin-bottom:16px"><div class="av" style="width:84px;height:84px;font-size:32px;margin:0 auto 8px">${esc(u.name[0]||"M")}</div><b style="font-size:19px">${esc(u.name)}</b><small class="mut" style="display:block">Telegram ID: ${u.tg_id}</small><small style="color:var(--ac2)">ID: ${u.usr_id}</small></div>
+<div class="box row"><div><small class="mut">MENING BALANSIM</small><div><b class="ac" style="font-size:22px">${fmt(u.balance)}</b> UZS</div></div><button class="btn b2" style="width:auto;padding:10px 16px" onclick="topup()">To‘ldirish</button></div>
+<div class="grid2"><div class="box"><small class="mut">BUYURTMALAR</small><div><b style="font-size:20px">${u.orders}</b></div></div><div class="box"><small class="mut">RO‘YXATDAN O‘TGAN</small><div><b>${dt(u.joined).split(" ")[0]}</b></div></div></div>
+<button class="li" onclick="theme()"><span style="font-size:24px">🌙</span><div><b>Kunduzgi / qorong‘i rejim</b><small>Almashtirish uchun bosing</small></div><span class="sw r"></span></button>
+<button class="li" onclick="go('${S.links.news}')"><span style="font-size:24px">📣</span><div><b>Yangiliklar kanali</b><small>Aksiyalar va yangiliklar</small></div></button>
+<button class="li" onclick="go('${S.links.support}')"><span style="font-size:24px">🥷</span><div><b>Qo‘llab-quvvatlash</b><small>Muammo va savollar uchun yordam</small></div></button>
+<button class="li" onclick="terms()"><span style="font-size:24px">📄</span><div><b>Foydalanish shartlari</b><small>Ommaviy oferta va qoidalar</small></div></button>
+<button class="li" onclick="go('${S.links.isbot}')"><span style="font-size:24px">🧾</span><div><b>To‘lov isbotlari</b><small>Isbotlar kanaliga o‘tish</small></div></button>`}
+function theme(){const b=document.body;b.dataset.t=b.dataset.t==="dark"?"light":"dark";try{localStorage.setItem("t",b.dataset.t)}catch(e){}}
+function terms(){modal(`<h2>Foydalanish shartlari <button onclick="closeM()">✕</button></h2><p>Assalomu alaykum 👋 Bizning Wazzr BOTimizdan foydalanayotganingizdan xursandmiz!</p><ol style="padding-left:18px;margin:10px 0;line-height:1.6"><li>WAZZR BOT servisi barcha o‘yinchilar uchun turli o‘yinlarga donat qilish uchun taqdim etilgan.</li><li>Tanlangan kategoriyada ID so‘ralganda ID raqamni to‘g‘ri kiritish majburiy. Xato ID kiritilib, donat boshqa foydalanuvchiga ketib qolsa, <b>BIZ JAVOB BERMAYMIZ!</b></li><li>To‘lov asosan Humo / Uzcard orqali amalga oshiriladi. Iloji boricha Humo / Uzcard kartasidan to‘lang. Bankomatda aniq summa tashlab bo‘lmaydi!</li></ol><button class="btn" onclick="closeM()">Tushundim</button>`)}
+$("#nav").onclick=e=>{const b=e.target.closest("button");if(!b)return;b.dataset.v==="bal"?topup():show(b.dataset.v)};
+try{const t=localStorage.getItem("t");if(t)document.body.dataset.t=t}catch(e){}
+load().then(()=>{if(S&&S.pending){pay=S.pending}});
+</script></body></html>
